@@ -1,10 +1,10 @@
 package models
 
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 import javax.inject.{Inject, Singleton}
 import slick.jdbc.MySQLProfile.api._
-
+import play.api.libs.json._
 
 case class User(uid: String,
                 pw: String,
@@ -13,6 +13,19 @@ case class User(uid: String,
                 old: Int,
                 email: String)
 
+object User {
+  implicit val userWrites = new Writes[User] {
+    def writes(obj: User) = Json.obj(
+      "uid" -> obj.uid,
+      "pw" -> obj.pw,
+      "name" -> obj.name,
+      "gender" -> obj.gender,
+      "old" -> obj.old,
+      "email" -> obj.email
+    )
+  }
+}
+
 class Users(tag: Tag) extends Table[User] (tag, "User") {
   def uid = column[String]("uid", O.PrimaryKey)
   def pw = column[String]("pw")
@@ -20,7 +33,7 @@ class Users(tag: Tag) extends Table[User] (tag, "User") {
   def gender = column[Int]("gender")
   def old = column[Int]("old")
   def email = column[String]("email")
-  def * = (uid, pw, name, gender, old, email) <> ((User.apply _ ).tupled, User.unapply)
+  def * = (uid, pw, name, gender, old, email) <> ((User.apply _).tupled, User.unapply)
 }
 
 @Singleton
