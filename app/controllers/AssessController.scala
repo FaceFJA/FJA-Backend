@@ -12,5 +12,7 @@ import play.api.libs.concurrent.Execution.Implicits.defaultContext
 class AssessController @Inject()(cc: ControllerComponents) (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
+  def assessList = Action.async { request =>
 
+  }
 }
