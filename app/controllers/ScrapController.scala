@@ -10,6 +10,17 @@ import scala.collection.mutable.ListBuffer
 class ScrapController @Inject()(cc: ControllerComponents, db: ScrapAccess)(implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
+  /*
+   * GET
+   *
+   * 클라이언트로부터 받는 데이터
+   * id
+   *
+   * 성공 시
+   * 200
+   *
+   */
+
   def getAlbumList = Action(parse.json) {request: Request[JsValue] => {
     val id = (request.body \ "id").as[String]
     val result = ListBuffer[JsValue]()
@@ -18,6 +29,17 @@ class ScrapController @Inject()(cc: ControllerComponents, db: ScrapAccess)(impli
     )
     Ok(Json.toJson(result))
   }}
+
+  /*
+   * POST
+   *
+   * 클라이언트로부터 받는 데이터
+   * id, post_id, album_name
+   *
+   * 성공 시
+   * 200
+   *
+   */
 
   def addScrap = Action(parse.json) {request: Request[JsValue] =>
     val id = (request.body \ "id").as[String]
@@ -28,6 +50,16 @@ class ScrapController @Inject()(cc: ControllerComponents, db: ScrapAccess)(impli
     OK("스크랩 성공")
   }
 
+  /*
+   * GET
+   *
+   * 클라이언트로부터 받는 데이터
+   * id, album_name
+   *
+   * 성공시
+   * 200
+   */
+
   def getPostInScrap = Action(parse.json) {request: Request[JsValue] =>
     val id = (request.body \ "id").as[String]
     val album = (request.body \ "album_name").as[String]
@@ -37,6 +69,17 @@ class ScrapController @Inject()(cc: ControllerComponents, db: ScrapAccess)(impli
     )
     Ok(Json.toJson(result))
   }
+
+  /*
+   * DELETE
+   *
+   * 클라이언트로부터 받는 데이터
+   * id, album_name, post_id
+   *
+   * 성공 시
+   * 200
+   *
+   */
 
   def deleteScrap = Action(parse.json) {request: Request[JsValue] =>
     val id = (request.body \ "id").as[String]

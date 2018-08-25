@@ -11,11 +11,30 @@ import scala.collection.mutable.ListBuffer
 class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess, auth: ActionWithAuth)(implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
+  /*
+   * GET
+   *
+   * 클라이언트로부터 받는 데이터
+   * id
+   *
+   * 성공 시
+   * 200
+   */
   def getPersonalInfo = auth(parse.json) { request: Request[JsValue] =>
     val id = (request.body \ "id").as[String]
     val result = takePersonalInfo(id)
     Ok(Json.toJson(result))
   }
+
+  /*
+   * PUT
+   *
+   * 클라이언트로부터 받는 데이터
+   * id, pw
+   *
+   * 성공 시
+   * 200
+   */
 
   def updatePersonalInfo = auth(parse.json) { request: Request[JsValue] =>
     val id = (request.body \ "id").as[String]
@@ -31,11 +50,32 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
     Ok("")
   }
 
+  /*
+   * DELETE
+   *
+   * 클라이언트로부터 받는 데이터
+   * id
+   *
+   * 성공 시
+   * 200
+   */
+
   def leaveUser = auth(parse.json) {request: Request[JsValue] =>
     val id = (request.body \ "id").as[String]
     db.leaveUser(id)
     Ok("회원탈퇴 완료")
   }
+
+  /*
+   * GET
+   *
+   * 클라이언트로부터 받는 데이터
+   * id
+   *
+   * 성공 시
+   * 200
+   *
+   */
 
   def takePersonalInfo(id: String) = {
     val result = new ListBuffer[JsValue]()
