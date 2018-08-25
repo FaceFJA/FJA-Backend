@@ -37,7 +37,23 @@ class Users(tag: Tag) extends Table[User] (tag, "User") {
 }
 
 @Singleton
-class UserAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvider) extends HasDatabaseConfigProvider[JdbcProfile] {
+class UserAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)
+  extends HasDatabaseConfigProvider[JdbcProfile] {
+
   val users = TableQuery[Users]
+
   def selectAll = db.run(users.result)
+
+  def checkEmail(checkingEmail: String) = {
+    db.run(users.filter(_.email == checkingEmail).result)
+  }
+
+  def checkId(checkingId: String) = {
+    db.run(users.filter(_.uid == checkingId).result)
+  }
+
+  def joinNewUser(user: User) = {
+    db.run(DBIO.seq(users += user))
+  }
+
 }

@@ -1,6 +1,6 @@
 name := """FJABackend"""
 
-version := scala.sys.env("FJA_VERSION")
+version := "1.0.0" // scala.sys.env("FJA_VERSION")
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 

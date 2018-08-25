@@ -3,6 +3,7 @@ package models
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import javax.inject.{Inject, Singleton}
+import model.Posts
 import slick.jdbc.MySQLProfile.api._
 
 case class Scrap(uid: String, post_id: Int, album_name: String)

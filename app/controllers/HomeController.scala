@@ -11,6 +11,10 @@ import scala.collection.mutable.ListBuffer
 class HomeController @Inject()(cc: ControllerComponents, db: UserAccess) (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
+  def main = Action {
+    Ok("Hello, world!")
+  }
+  /*
   def main = Action.async {
     val result = new ListBuffer[JsValue]()
     db.selectAll.map(i => {
@@ -21,5 +25,6 @@ class HomeController @Inject()(cc: ControllerComponents, db: UserAccess) (implic
       Ok(Json.toJson(result.toList))
     })
   }
+  */
 
 }
