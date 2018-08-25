@@ -27,4 +27,14 @@ class ScrapAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
   val scraps = TableQuery[Scraps]
 
   def selectAll = db.run(scraps.result)
+  def getAlbumList(id: String) = {
+    db.run(scraps.filter(r => r.uid==id).distinctOn(_.album_name).map(_.album_name).result)
+  }
+  def addScrap(scrap: Scrap) = db.run(DBIO.seq(scraps+=scrap))
+  def getPostInAlbum(id: String, album: String) = {
+    db.run(scraps.filter(r => r.uid==id && r.album_name==album).map(_.post_id).result)
+  }
+  def deleteScrap(id: String, album: String, post_id: Int) = {
+    db.run(scraps.filter(r => r.uid==id && r.album_name==album && r.post_id==post_id).delete)
+  }
 }

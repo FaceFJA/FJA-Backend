@@ -7,3 +7,4 @@ POST     /join/email                controllers.AuthController.checkEmail
 
 GET     /personal                   controllers.PersonalInfoController.getPersonalInfo
 UPDATE  /personal                   controllers.PersonalInfoController.updatePersonalInfo
+
