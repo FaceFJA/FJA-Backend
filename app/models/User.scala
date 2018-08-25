@@ -71,4 +71,8 @@ class UserAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   def updatePassword(id: String, row: Users#TableElementType) = {
     db.run(users.filter(_.uid == id).update(row))
   }
+
+  def leaveUser(id: String) = {
+    db.run(users.filter(_.uid==id).delete)
+  }
 }

@@ -31,6 +31,12 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
     Ok("")
   }
 
+  def leaveUser = auth(parse.json) {request: Request[JsValue] =>
+    val id = (request.body \ "id").as[String]
+    db.leaveUser(id)
+    Ok("회원탈퇴 완료")
+  }
+
   def takePersonalInfo(id: String) = {
     val result = new ListBuffer[JsValue]()
     db.checkId(id).map(i =>
