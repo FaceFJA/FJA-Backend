@@ -22,7 +22,7 @@ case class Post(post_id: Int,
                 upload_date: Date,
                 valid_date: Date,
                 star: BigDecimal,
-                category: JsValue)
+                category: String)
 
 class Posts(tag: Tag) extends Table[Post] (tag, "Post"){
   def post_id = column[Int]("post_id", O.PrimaryKey)
@@ -31,7 +31,7 @@ class Posts(tag: Tag) extends Table[Post] (tag, "Post"){
   def upload_date = column[Date]("upload_date")
   def valid_date = column[Date]("valid_date")
   def star = column[BigDecimal]("star")
-  def category = column[JsValue]("category")
+  def category = column[String]("category")
   def * = (post_id, title, text, upload_date, valid_date, star, category) <> ((Post.apply _ ).tupled, Post.unapply)
 }
 

@@ -56,4 +56,15 @@ class UserAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
     db.run(DBIO.seq(users += user))
   }
 
+  def loginEval(id: String, pw: String) = {
+    db.run(users.filter(r => r.uid == id && r.pw == pw).exists.result)
+  }
+
+  def findId(name: String, email: String) = {
+    db.run(users.filter(r => r.name == name && r.email == email).map(_.uid).result)
+  }
+
+  def findPassword(id: String, email: String) = {
+    db.run(users.filter(r => r.uid == id && r.email == email).map(_.pw).result)
+  }
 }

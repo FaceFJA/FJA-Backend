@@ -13,7 +13,7 @@ object JsonMapper {
   )
 }
 
-case class Fashionista(category: JsValue,
+case class Fashionista(category: String,
                        post_id: Int,
                        uid: String,
                        kind: Int,
@@ -21,7 +21,7 @@ case class Fashionista(category: JsValue,
                        votes: Int)
 
 class Fashionistas(tag: Tag) extends Table[Fashionista] (tag, "Fashionista"){
-  def category = column[JsValue]("category")
+  def category = column[String]("category")
   def post_id = column[Int]("post_id")
   def uid = column[String]("uid")
   def kind = column[Int]("kind")
