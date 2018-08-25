@@ -5,3 +5,5 @@
 POST     /join                      controllers.AuthController.join
 POST     /join/email                controllers.AuthController.checkEmail
 
+GET     /personal                   controllers.PersonalInfoController.getPersonalInfo
+UPDATE  /personal                   controllers.PersonalInfoController.updatePersonalInfo

@@ -67,4 +67,8 @@ class UserAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   def findPassword(id: String, email: String) = {
     db.run(users.filter(r => r.uid == id && r.email == email).map(_.pw).result)
   }
+
+  def updatePassword(id: String, row: Users#TableElementType) = {
+    db.run(users.filter(_.uid == id).update(row))
+  }
 }
