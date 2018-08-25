@@ -31,9 +31,9 @@ class ImageAccess @Inject() (protected val dbConfigProvider: DatabaseConfigProvi
 
   def selectAll = db.run(images.result)
   def findImagesByPostId(postId: Int) = {
-    db.run(images.filter(_.post_id == postId).result)
+    db.run(images.filter(_.post_id === postId).result)
   }
   def findImageByCommentId(commentId: Int) = {
-    db.run(images.filter(_.comment_id == commentId).result)
+    db.run(images.filter(_.comment_id === commentId).result)
   }
 }

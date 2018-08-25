@@ -36,17 +36,17 @@ class CommentAccess @Inject() (protected val dbConfigProvider: DatabaseConfigPro
 
   def selectAll = db.run(comments.result)
   def findCommentsByPostId(postId: Int) = {
-    db.run(comments.filter(_.post_id == postId).result)
+    db.run(comments.filter(_.post_id === postId).result)
   }
   def findCommentById(commentId: Int) = {
-    db.run(comments.filter(_.comment_id == commentId).result)
+    db.run(comments.filter(_.comment_id === commentId).result)
   }
   def increaseLike(commentId: Int, value: Int) = {
-    val column = for { l <- comments if l.comment_id == commentId } yield l.like
+    val column = for { l <- comments if l.comment_id === commentId } yield l.like
     db.run(column.update(value))
   }
   def increaseUnlike(commentId: Int, value: Int) = {
-    val column = for { l <- comments if l.comment_id == commentId } yield l.unlike
+    val column = for { l <- comments if l.comment_id === commentId } yield l.unlike
     db.run(column.update(value))
   }
 }

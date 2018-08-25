@@ -1,9 +1,10 @@
 package controllers
 
-import java.util.Base64
+import java.text.SimpleDateFormat
+import java.util.{Base64, Date}
 
 import javax.inject._
-import model.PostAccess
+import model.{Post, PostAccess}
 import models.{CommentAccess, ImageAccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -225,5 +226,34 @@ class DiscussController @Inject()(cc: ControllerComponents,
     }
   }
 
+  /*
+   * POST
+   *
+   * 클라이언트로부터 받는 것:
+   * {
+   *    "title": "edlfhaekh",
+   *    "text": "kferiuhougeir",
+   *    "category": "some category"
+   * }
+   *
+   * 성공 시
+   * 201 작성됨
+   *
+   * 실패 시
+   * 500 서버 에
+   */
+  def uploadPost = actionWithAuth(parse.json) { request =>
+    val title = (request.body \ "title").as[String]
+    val text = (request.body \ "text").as[String]
+    val uploadDate = new SimpleDateFormat("yyyy-MM-dd").parse(new Date().toString).getTime
+    val validDate = uploadDate
+    val star = 0.0
+    val category = (request.body \ "category").as[String]
+    val isAssess = false
+    val userId = request.session.get("id").getOrElse("")
+    val post = Post(0, title, text, Int(uploadDate), Int(validDate), star, category, isAssess, userId)
+    postDB.post(post)
+    Created("글 작성됨")
+  }
 
 }
