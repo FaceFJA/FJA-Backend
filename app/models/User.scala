@@ -45,11 +45,11 @@ class UserAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   def selectAll = db.run(users.result)
 
   def checkEmail(checkingEmail: String) = {
-    db.run(users.filter(_.email == checkingEmail).result)
+    db.run(users.filter(_.email === checkingEmail).result)
   }
 
   def checkId(checkingId: String) = {
-    db.run(users.filter(_.uid == checkingId).result)
+    db.run(users.filter(_.uid === checkingId).result)
   }
 
   def joinNewUser(user: User) = {
@@ -57,22 +57,22 @@ class UserAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvide
   }
 
   def loginEval(id: String, pw: String) = {
-    db.run(users.filter(r => r.uid == id && r.pw == pw).exists.result)
+    db.run(users.filter(r => r.uid === id && r.pw === pw).exists.result)
   }
 
   def findId(name: String, email: String) = {
-    db.run(users.filter(r => r.name == name && r.email == email).map(_.uid).result)
+    db.run(users.filter(r => r.name === name && r.email === email).map(_.uid).result)
   }
 
   def findPassword(id: String, email: String) = {
-    db.run(users.filter(r => r.uid == id && r.email == email).map(_.pw).result)
+    db.run(users.filter(r => r.uid === id && r.email === email).map(_.pw).result)
   }
 
   def updatePassword(id: String, row: Users#TableElementType) = {
-    db.run(users.filter(_.uid == id).update(row))
+    db.run(users.filter(_.uid === id).update(row))
   }
 
   def leaveUser(id: String) = {
-    db.run(users.filter(_.uid==id).delete)
+    db.run(users.filter(_.uid === id).delete)
   }
 }

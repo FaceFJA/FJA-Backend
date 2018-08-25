@@ -4,8 +4,9 @@ import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import javax.inject.{Inject, Singleton}
 import slick.jdbc.MySQLProfile.api._
-
 import java.sql.Blob
+
+import model.Posts
 
 case class Image(post_id: Int, comment_id: Int, data: Blob, order: Int)
 
@@ -29,4 +30,10 @@ class ImageAccess @Inject() (protected val dbConfigProvider: DatabaseConfigProvi
   val images = TableQuery[Images]
 
   def selectAll = db.run(images.result)
+  def findImagesByPostId(postId: Int) = {
+    db.run(images.filter(_.post_id == postId).result)
+  }
+  def findImageByCommentId(commentId: Int) = {
+    db.run(images.filter(_.comment_id == commentId).result)
+  }
 }

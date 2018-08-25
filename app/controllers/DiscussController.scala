@@ -4,22 +4,22 @@ import java.util.Base64
 
 import javax.inject._
 import model.PostAccess
-import play.api.mvc._
-import models.{CommentAccess, ImageAccess, User, UserAccess}
-import play.api.libs.json._
+import models.{CommentAccess, ImageAccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json._
+import play.api.mvc._
 import services.ActionWithAuth
 
 import scala.collection.mutable.ListBuffer
 
 
 @Singleton
-class AssessController @Inject()(cc: ControllerComponents,
-                                 actionWithAuth: ActionWithAuth,
-                                 postDB: PostAccess,
-                                 imageDB: ImageAccess,
-                                 commentDB: CommentAccess)
-                                (implicit assetsFinder: AssetsFinder)
+class DiscussController @Inject()(cc: ControllerComponents,
+                                  actionWithAuth: ActionWithAuth,
+                                  postDB: PostAccess,
+                                  imageDB: ImageAccess,
+                                  commentDB: CommentAccess)
+                                 (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
   /*
@@ -43,8 +43,8 @@ class AssessController @Inject()(cc: ControllerComponents,
    * 성공 시
    * 200 성공
    */
-  def assessList(needCategory: String) = actionWithAuth.async {
-    postDB.selectAssess.map { i =>
+  def discussList(needCategory: String) = actionWithAuth.async {
+    postDB.selectDiscuss.map { i =>
       var list = new ListBuffer[Seq[(String, JsValue)]]()
       i.foreach { column =>
         val postId = column.post_id
@@ -97,7 +97,7 @@ class AssessController @Inject()(cc: ControllerComponents,
    * 성공 시
    * 200 성공
    */
-  def getAssessPost(postId: Int) = actionWithAuth.async {
+  def getDiscussPost(postId: Int) = actionWithAuth.async {
     postDB.findPostById(postId).map { i =>
       var result = Json.obj("" -> "")
       i.foreach { post =>

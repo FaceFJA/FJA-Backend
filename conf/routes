@@ -2,11 +2,11 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-POST     /join                      controllers.AuthController.join
-POST     /join/email                controllers.AuthController.checkEmail
+POST    /join                      controllers.AuthController.join
+POST    /join/email                controllers.AuthController.checkEmail
 
 GET     /personal                   controllers.PersonalInfoController.getPersonalInfo
-UPDATE  /personal                   controllers.PersonalInfoController.updatePersonalInfo
+PUT     /personal                   controllers.PersonalInfoController.updatePersonalInfo
 DELETE  /leave                      controllers.PersonalInfoController.leaveUser
 
 GET     /albumList                  controllers.ScrapController.getAlbumList
