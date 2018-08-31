@@ -35,6 +35,6 @@ class ScrapAccess @Inject()(protected val dbConfigProvider: DatabaseConfigProvid
     db.run(scraps.filter(r => r.uid === id && r.album_name === album).map(_.post_id).result)
   }
   def deleteScrap(id: String, album: String, post_id: Int) = {
-    db.run(scraps.filter(r => r.uid === id && r.album_name == album && r.post_id === post_id).delete)
+    db.run(scraps.filter(r => r.uid === id && r.album_name === album && r.post_id === post_id).delete)
   }
 }

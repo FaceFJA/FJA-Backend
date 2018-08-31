@@ -58,7 +58,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
           j.size match {
             case 0 => image = null
             case _ => {
-              val blobLength = Int(j(0).data.length)
+              val blobLength = j(0).data.length.asInstanceOf[Int]
               image = Base64.getEncoder.encodeToString(j(0).data.getBytes(1, blobLength))
             }
           }
@@ -109,7 +109,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
         var images = Seq[String]()
         imageDB.findImagesByPostId(postId).map { j =>
           images = j.map { image =>
-            Base64.getEncoder.encodeToString(image.data.getBytes(1, Int(image.data.length)))
+            Base64.getEncoder.encodeToString(image.data.getBytes(1, image.data.length.asInstanceOf[Int]))
           }
         }
         var comments = 0
@@ -182,7 +182,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
         var image = ""
         imageDB.findImageByCommentId(commentId).map { i =>
           i.foreach { column =>
-            image = Base64.getEncoder.encodeToString(column.data.getBytes(1, Int(column.data.length)))
+            image = Base64.getEncoder.encodeToString(column.data.getBytes(1, column.data.length.asInstanceOf[Int]))
           }
         }
         val json = Json.obj(
@@ -251,7 +251,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
     val category = (request.body \ "category").as[String]
     val isAssess = false
     val userId = request.session.get("id").getOrElse("")
-    val post = Post(0, title, text, Int(uploadDate), Int(validDate), star, category, isAssess, userId)
+    val post = Post(0, title, text, uploadDate.asInstanceOf[Int], validDate.asInstanceOf[Int], star, category, isAssess, userId)
     postDB.post(post)
     Created("글 작성됨")
   }

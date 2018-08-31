@@ -5,10 +5,10 @@ import java.util.{Base64, Date}
 
 import javax.inject._
 import model.{Post, PostAccess}
-import play.api.mvc._
-import models.{CommentAccess, ImageAccess, User, UserAccess}
-import play.api.libs.json._
+import models.{CommentAccess, ImageAccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json._
+import play.api.mvc._
 import services.ActionWithAuth
 
 import scala.collection.mutable.ListBuffer
@@ -58,7 +58,8 @@ class AssessController @Inject()(cc: ControllerComponents,
           j.size match {
             case 0 => image = null
             case _ => {
-              val blobLength = Int(j(0).data.length)
+              val blobLength = j(0).data.length.asInstanceOf[Int]
+
               image = Base64.getEncoder.encodeToString(j(0).data.getBytes(1, blobLength))
             }
           }
@@ -109,7 +110,7 @@ class AssessController @Inject()(cc: ControllerComponents,
         var images = Seq[String]()
         imageDB.findImagesByPostId(postId).map { j =>
           images = j.map { image =>
-            Base64.getEncoder.encodeToString(image.data.getBytes(1, Int(image.data.length)))
+            Base64.getEncoder.encodeToString(image.data.getBytes(1, image.data.length.asInstanceOf[Int]))
           }
         }
         var comments = 0
@@ -182,7 +183,7 @@ class AssessController @Inject()(cc: ControllerComponents,
         var image = ""
         imageDB.findImageByCommentId(commentId).map { i =>
           i.foreach { column =>
-            image = Base64.getEncoder.encodeToString(column.data.getBytes(1, Int(column.data.length)))
+            image = Base64.getEncoder.encodeToString(column.data.getBytes(1, column.data.length.asInstanceOf[Int]))
           }
         }
         val json = Json.obj(
@@ -248,7 +249,7 @@ class AssessController @Inject()(cc: ControllerComponents,
     val category = (request.body \ "category").as[String]
     val isAssess = true
     val userId = request.session.get("id").getOrElse("")
-    val post = Post(0, title, text, Int(uploadDate), Int(validDate), star, category, isAssess, userId)
+    val post = Post(0, title, text, uploadDate.asInstanceOf[Int], validDate.asInstanceOf[Int], star, category, isAssess, userId)
     postDB.post(post)
     Created("글 작성됨")
   }

@@ -1,15 +1,14 @@
 package controllers
 
 import javax.inject._
-import play.api.mvc._
-import models.UserAccess
-import models.User
-import play.api.libs.json._
+import models.{User, UserAccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json._
+import play.api.mvc._
 
 
 @Singleton
-class AuthController @Inject()(cc: ControllerComponents, db: UserAccess) (implicit assetsFinder: AssetsFinder)
+class AuthController @Inject()(cc: ControllerComponents, db: UserAccess)(implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
   /*

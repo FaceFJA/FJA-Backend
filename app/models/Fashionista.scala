@@ -3,15 +3,16 @@ package models
 import play.api.libs.json._
 import slick.lifted.Tag
 import slick.jdbc.MySQLProfile.api._
-import JsonMapper.mapper
 import model.Posts
 
+/*
 object JsonMapper {
   implicit val mapper = MappedColumnType.base[JsValue, String](
     { json => Json.stringify(json) },
     { string => Json.parse(string) }
   )
 }
+*/
 
 case class Fashionista(category: String,
                        post_id: Int,
@@ -32,6 +33,6 @@ class Fashionistas(tag: Tag) extends Table[Fashionista] (tag, "Fashionista"){
   val posts = TableQuery[Posts]
   val users = TableQuery[Users]
 
-  def post_id_FK = foreignKey("post_id_fk", post_id, posts)
-  def uid_FK = foreignKey("uid_fk", uid, users)
+  def post_id_FK = foreignKey("post_id_fk", post_id, posts)(_.post_id)
+  def uid_FK = foreignKey("uid_fk", uid, users)(_.uid)
 }

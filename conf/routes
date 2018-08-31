@@ -2,14 +2,36 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-POST    /join                      controllers.AuthController.join
-POST    /join/email                controllers.AuthController.checkEmail
+POST    /join                           controllers.AuthController.join
+POST    /join/email                     controllers.AuthController.checkEmail
+POST    /login                          controllers.AuthController.login
+POST    /auth/id                        controllers.AuthController.findId
+POST    /auth/pw                        controllers.AuthController.findPassword
 
-GET     /personal                   controllers.PersonalInfoController.getPersonalInfo
-PUT     /personal                   controllers.PersonalInfoController.updatePersonalInfo
-DELETE  /leave                      controllers.PersonalInfoController.leaveUser
+GET     /assess/list/:needCategory      controllers.AssessController.assessList(needCategory: String)
+GET     /assess/post/:postId            controllers.AssessController.getAssessPost(postId: Int)
+PUT     /assess/markStar/:postId        controllers.AssessController.markStarToPost(postId: Int)
+GET     /assess/comments/:postId        controllers.AssessController.getCommentList(postId: Int)
+PUT     /assess/markLike/:commentId     controllers.AssessController.putLikeOrUnlike(commentId: Int)
+POST    /assess/upload/                 controllers.AssessController.uploadPost
 
-GET     /albumList                  controllers.ScrapController.getAlbumList
-GET     /postInScrap                controllers.ScrapController.getPostInScrap
-POST    /scrap                      controllers.ScrapController.addScrap
-DELETE  /scrap                      controllers.ScrapController.deleteScrap
+GET     /discuss/list/:needCategory     controllers.DiscussController.discussList(needCategory: String)
+GET     /discuss/post/:postId           controllers.DiscussController.getDiscussPost(postId: Int)
+PUT     /discuss/markStar/:postId       controllers.DiscussController.markStarToPost(postId: Int)
+GET     /discuss/comments/:postId       controllers.DiscussController.getCommentList(postId: Int)
+PUT     /discuss/markLike/:commentId    controllers.DiscussController.putLikeOrUnlike(commentId: Int)
+POST    /discuss/upload/                controllers.DiscussController.uploadPost
+
+GET     /fashionista/:date              controllers.FashionistaController.getStarByDate(date: String)
+
+GET     /personal                       controllers.PersonalInfroController.getPersonalInfo
+PUT     /personal                       controllers.PersonalInfroController.updatePersonalInfo
+DELETE  /leave                          controllers.PersonalInfroController.leaveUser
+
+# GET     /albumList                      controllers.ScrapController.getAlbumList
+# GET     /postInScrap                    controllers.ScrapController.getPostInScrap
+# POST    /scrap                          controllers.ScrapController.addScrap
+# DELETE  /scrap                          controllers.ScrapController.deleteScrap
+
+
+

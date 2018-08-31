@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject.Inject
 import models.{User, UserAccess}
+import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc.{AbstractController, ControllerComponents, Request}
 import services.ActionWithAuth
@@ -12,13 +13,13 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
   extends AbstractController(cc) {
 
   def getPersonalInfo = auth(parse.json) { request: Request[JsValue] =>
-    val id = (request.body \ "id").as[String]
+    val id = request.session.get("id").getOrElse("")
     val result = takePersonalInfo(id)
     Ok(Json.toJson(result))
   }
 
   def updatePersonalInfo = auth(parse.json) { request: Request[JsValue] =>
-    val id = (request.body \ "id").as[String]
+    val id = request.session.get("id").getOrElse("")
     val pw = (request.body \ "pw").as[String]
 
     val result = Json.toJson(takePersonalInfo(id))
@@ -31,8 +32,8 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
     Ok("")
   }
 
-  def leaveUser = auth(parse.json) {request: Request[JsValue] =>
-    val id = (request.body \ "id").as[String]
+  def leaveUser = auth(parse.json) { request: Request[JsValue] =>
+    val id = request.session.get("id").getOrElse("")
     db.leaveUser(id)
     Ok("회원탈퇴 완료")
   }
