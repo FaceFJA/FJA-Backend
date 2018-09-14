@@ -1,26 +1,27 @@
 package controllers
 
-import java.text.SimpleDateFormat
+import java.io.{File, PrintWriter}
 import java.util.{Base64, Date}
 
 import javax.inject._
 import model.{Post, PostAccess}
-import models.{CommentAccess, ImageAccess}
+import models.{Comment, CommentAccess, Image, ImageAccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 import services.ActionWithAuth
 
 import scala.collection.mutable.ListBuffer
+import scala.io.Source
 
 
 @Singleton
 class DiscussController @Inject()(cc: ControllerComponents,
-                                  actionWithAuth: ActionWithAuth,
-                                  postDB: PostAccess,
-                                  imageDB: ImageAccess,
-                                  commentDB: CommentAccess)
-                                 (implicit assetsFinder: AssetsFinder)
+                                 auth: ActionWithAuth,
+                                 postDB: PostAccess,
+                                 imageDB: ImageAccess,
+                                 commentDB: CommentAccess)
+                                (implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
 
   /*
@@ -44,9 +45,9 @@ class DiscussController @Inject()(cc: ControllerComponents,
    * 성공 시
    * 200 성공
    */
-  def discussList(needCategory: String) = actionWithAuth.async {
+  def discussList(needCategory: String) = auth.async {
     postDB.selectDiscuss.map { i =>
-      var list = new ListBuffer[Seq[(String, JsValue)]]()
+      var list = new ListBuffer[Map[String, JsValue]]()
       i.foreach { column =>
         val postId = column.post_id
         val title = column.title
@@ -59,12 +60,12 @@ class DiscussController @Inject()(cc: ControllerComponents,
             case 0 => image = null
             case _ => {
               val blobLength = j(0).data.length.asInstanceOf[Int]
-              image = Base64.getEncoder.encodeToString(j(0).data.getBytes(1, blobLength))
+              image = Source.fromFile(j(0).data).mkString
             }
           }
         }
         if (category.equals(needCategory)) {
-          list += Seq(
+          list += Map(
             "post_id" -> JsNumber(postId),
             "title" -> JsString(title),
             "text" -> JsString(text),
@@ -98,7 +99,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
    * 성공 시
    * 200 성공
    */
-  def getDiscussPost(postId: Int) = actionWithAuth.async {
+  def getDiscussPost(postId: Int) = auth.async {
     postDB.findPostById(postId).map { i =>
       var result = Json.obj("" -> "")
       i.foreach { post =>
@@ -109,7 +110,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
         var images = Seq[String]()
         imageDB.findImagesByPostId(postId).map { j =>
           images = j.map { image =>
-            Base64.getEncoder.encodeToString(image.data.getBytes(1, image.data.length.asInstanceOf[Int]))
+            Source.fromFile(image.data).mkString
           }
         }
         var comments = 0
@@ -143,10 +144,11 @@ class DiscussController @Inject()(cc: ControllerComponents,
    * 성공 시
    * 200 성공
    */
-  def markStarToPost(postId: Int) = actionWithAuth(parse.json) { request =>
-    val star = (request.body \ "star").as[BigDecimal]
-    postDB.markStar(postId, star)
-    Ok("별점 부여됨")
+  def markStarToPost(postId: Int) = auth(parse.json).async { request =>
+    val star = (request.body \ "star").as[Double]
+    postDB.markStar(postId, star).map { result =>
+      Ok("별점 부여됨")
+    }
   }
 
   /*
@@ -171,7 +173,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
    * 200 성공
    *
    */
-  def getCommentList(postId: Int) = actionWithAuth.async {
+  def getCommentList(postId: Int) = auth.async {
     commentDB.findCommentsByPostId(postId).map { i =>
       var comments = new ListBuffer[JsObject]()
       i.foreach { column =>
@@ -182,7 +184,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
         var image = ""
         imageDB.findImageByCommentId(commentId).map { i =>
           i.foreach { column =>
-            image = Base64.getEncoder.encodeToString(column.data.getBytes(1, column.data.length.asInstanceOf[Int]))
+            image = Source.fromFile(column.data).mkString
           }
         }
         val json = Json.obj(
@@ -199,6 +201,23 @@ class DiscussController @Inject()(cc: ControllerComponents,
   }
 
   /*
+   * POST
+   *
+   * 클라이언트로부터 받는 것:
+   * postId
+   * {
+   *    "text": <text>
+   * }
+   */
+  def uploadComment(postId: Int) = auth(parse.json).async { request =>
+    val uid = request.session.get("id").getOrElse("")
+    val text = (request.body \ "text").as[String]
+    commentDB.addComment(Comment(uid, 0, postId, 0, 0, text)).map { result =>
+      Ok("댓글 작성됨")
+    }
+  }
+
+  /*
    * PUT
    *
    * 클라이언트로부터 받는 것:
@@ -211,7 +230,7 @@ class DiscussController @Inject()(cc: ControllerComponents,
    * 성공 시:
    * 200 OK
    */
-  def putLikeOrUnlike(commentId: Int) = actionWithAuth(parse.json).async { request =>
+  def putLikeOrUnlike(commentId: Int) = auth(parse.json).async { request =>
     val isLike = (request.body \ "is_like").as[Boolean]
     commentDB.findCommentById(commentId).map { i =>
       i.foreach { column =>
@@ -233,27 +252,38 @@ class DiscussController @Inject()(cc: ControllerComponents,
    * {
    *    "title": "edlfhaekh",
    *    "text": "kferiuhougeir",
-   *    "category": "some category"
+   *    "category": "some category",
+   *    "images": [
+   *      <base64 images...>
+   *    ]
    * }
    *
    * 성공 시
    * 201 작성됨
-   *
-   * 실패 시
-   * 500 서버 에
    */
-  def uploadPost = actionWithAuth(parse.json) { request =>
+  def uploadPost = auth(parse.json).async { request =>
     val title = (request.body \ "title").as[String]
     val text = (request.body \ "text").as[String]
-    val uploadDate = new SimpleDateFormat("yyyy-MM-dd").parse(new Date().toString).getTime
+    val uploadDate = new Date().getTime
     val validDate = uploadDate
     val star = 0.0
     val category = (request.body \ "category").as[String]
-    val isAssess = false
+    val images = (request.body \ "images").as[Array[String]]
+    val isAssess = 0
     val userId = request.session.get("id").getOrElse("")
-    val post = Post(0, title, text, uploadDate.asInstanceOf[Int], validDate.asInstanceOf[Int], star, category, isAssess, userId)
-    postDB.post(post)
-    Created("글 작성됨")
-  }
+    val post = Post(0, title, text, uploadDate.asInstanceOf[Long], validDate.asInstanceOf[Long], star, category, isAssess, userId)
+    postDB.post(post).map { result =>
+      postDB.size.map { size =>
+        images.foreach { image =>
+          val path = new File(".").getCanonicalPath + "/public/" + image.hashCode.toString
+          val writer = new PrintWriter(new File(path))
+          writer.write(image)
+          imageDB.insertImage(Image(Some(size), None, path, 0)).map { result =>
 
+          }
+        }
+      }
+      Created("글 작성됨")
+    }
+  }
 }

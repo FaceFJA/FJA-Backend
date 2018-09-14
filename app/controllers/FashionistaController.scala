@@ -11,6 +11,9 @@ import play.api.mvc._
 import services.ActionWithAuth
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 
 
 @Singleton
@@ -33,7 +36,7 @@ class FashionistaController @Inject()(cc: ControllerComponents, actionWithAuth: 
     val timestamp = new Timestamp(parsedDate.getTime)
     val timestampInt = timestamp.getTime
     var fashionistaList = new ListBuffer[JsObject]()
-    postDB.getFashionistaByDate(timestampInt.asInstanceOf[Int]).map { i =>
+    Await.result(postDB.getFashionistaByDate(timestampInt.asInstanceOf[Long]).map { i =>
       i.foreach { column =>
         val fashionista = Json.obj(
           "post_id" -> column.post_id,
@@ -42,7 +45,7 @@ class FashionistaController @Inject()(cc: ControllerComponents, actionWithAuth: 
         )
         fashionistaList += fashionista
       }
-    }
+    }, 2 seconds)
     Ok(Json.toJson(fashionistaList))
   }
 }

@@ -49,4 +49,7 @@ class CommentAccess @Inject() (protected val dbConfigProvider: DatabaseConfigPro
     val column = for { l <- comments if l.comment_id === commentId } yield l.unlike
     db.run(column.update(value))
   }
+  def addComment(comment: Comment) = {
+    db.run(comments += comment)
+  }
 }

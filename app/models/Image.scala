@@ -8,15 +8,15 @@ import java.sql.Blob
 
 import model.Posts
 
-case class Image(post_id: Int, comment_id: Int, data: Blob, order: Int)
+case class Image(post_id: Option[Int], comment_id: Option[Int], data: String, order: Int)
 
-class Images(tag: Tag) extends Table[Image](tag, "image") {
+class Images(tag: Tag) extends Table[Image](tag, "Image") {
   val posts = TableQuery[Posts]
   val comments = TableQuery[Comments]
 
-  def post_id = column[Int]("post_id")
-  def comment_id = column[Int]("comment_id")
-  def data = column[Blob]("data")
+  def post_id = column[Option[Int]]("post_id", O.Default(None))
+  def comment_id = column[Option[Int]]("comment_id", O.Default(None))
+  def data = column[String]("data")
   def order = column[Int]("order")
 
   def post_id_FK = foreignKey("post_id_fk", post_id, posts)(_.post_id)
@@ -35,5 +35,8 @@ class ImageAccess @Inject() (protected val dbConfigProvider: DatabaseConfigProvi
   }
   def findImageByCommentId(commentId: Int) = {
     db.run(images.filter(_.comment_id === commentId).result)
+  }
+  def insertImage(image: Image) = {
+    db.run(images ++= Seq(image))
   }
 }

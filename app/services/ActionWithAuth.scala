@@ -13,7 +13,7 @@ class ActionWithAuth @Inject()(parser: BodyParsers.Default) (implicit ec: Execut
     val userId = request.session.get("id")
     userId match {
       case None => {
-        Future.successful(Forbidden("로그인되지 않음"))
+        Future.successful(Unauthorized("로그인되지 않음"))
       }
       case Some(u) => {
         block(request)

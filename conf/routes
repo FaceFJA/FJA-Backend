@@ -14,6 +14,7 @@ PUT     /assess/markStar/:postId        controllers.AssessController.markStarToP
 GET     /assess/comments/:postId        controllers.AssessController.getCommentList(postId: Int)
 PUT     /assess/markLike/:commentId     controllers.AssessController.putLikeOrUnlike(commentId: Int)
 POST    /assess/upload/                 controllers.AssessController.uploadPost
+POST    /assess/commentUpload/:postId   controllers.AssessController.uploadComment(postId: Int)
 
 GET     /discuss/list/:needCategory     controllers.DiscussController.discussList(needCategory: String)
 GET     /discuss/post/:postId           controllers.DiscussController.getDiscussPost(postId: Int)
@@ -21,6 +22,7 @@ PUT     /discuss/markStar/:postId       controllers.DiscussController.markStarTo
 GET     /discuss/comments/:postId       controllers.DiscussController.getCommentList(postId: Int)
 PUT     /discuss/markLike/:commentId    controllers.DiscussController.putLikeOrUnlike(commentId: Int)
 POST    /discuss/upload/                controllers.DiscussController.uploadPost
+POST    /discuss/commentUpload/:postId  controllers.DiscussController.uploadComment(postId: Int)
 
 GET     /fashionista/:date              controllers.FashionistaController.getStarByDate(date: String)
 
@@ -32,6 +34,3 @@ DELETE  /leave                          controllers.PersonalInfroController.leav
 # GET     /postInScrap                    controllers.ScrapController.getPostInScrap
 # POST    /scrap                          controllers.ScrapController.addScrap
 # DELETE  /scrap                          controllers.ScrapController.deleteScrap
-
-
-

@@ -1,22 +1,25 @@
 package controllers
 
-import java.text.SimpleDateFormat
-import java.util.{Base64, Date}
+import java.io.{File, PrintWriter}
+import java.util.Date
 
 import javax.inject._
 import model.{Post, PostAccess}
-import models.{CommentAccess, ImageAccess}
+import models.{Comment, CommentAccess, Image, ImageAccess}
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 import play.api.mvc._
 import services.ActionWithAuth
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import scala.io.Source
 
 
 @Singleton
 class AssessController @Inject()(cc: ControllerComponents,
-                                 actionWithAuth: ActionWithAuth,
+                                 auth: ActionWithAuth,
                                  postDB: PostAccess,
                                  imageDB: ImageAccess,
                                  commentDB: CommentAccess)
@@ -44,9 +47,9 @@ class AssessController @Inject()(cc: ControllerComponents,
    * 성공 시
    * 200 성공
    */
-  def assessList(needCategory: String) = actionWithAuth.async {
+  def assessList(needCategory: String) = auth.async {
     postDB.selectAssess.map { i =>
-      var list = new ListBuffer[Seq[(String, JsValue)]]()
+      var list = new ListBuffer[Map[String, JsValue]]()
       i.foreach { column =>
         val postId = column.post_id
         val title = column.title
@@ -54,30 +57,30 @@ class AssessController @Inject()(cc: ControllerComponents,
         val category = column.category
         val star = column.star
         var image = ""
-        imageDB.findImagesByPostId(postId).map { j =>
-          j.size match {
-            case 0 => image = null
-            case _ => {
-              val blobLength = j(0).data.length.asInstanceOf[Int]
-
-              image = Base64.getEncoder.encodeToString(j(0).data.getBytes(1, blobLength))
+        Await.result(
+          imageDB.findImagesByPostId(postId).map { j =>
+            j.size match {
+              case 0 => image = null
+              case _ => {
+                image = Source.fromFile(j.head.data).mkString
+                if (category.equals(needCategory)) {
+                  list += Map(
+                    "post_id" -> JsNumber(postId),
+                    "title" -> JsString(title),
+                    "text" -> JsString(text),
+                    "image" -> JsString(image),
+                    "category" -> JsString(category),
+                    "star" -> JsNumber(star)
+                  )
+                }
+              }
             }
-          }
-        }
-        if (category.equals(needCategory)) {
-          list += Seq(
-            "post_id" -> JsNumber(postId),
-            "title" -> JsString(title),
-            "text" -> JsString(text),
-            "image" -> JsString(image),
-            "category" -> JsString(category),
-            "star" -> JsNumber(star)
-          )
-        }
+          }, 2 seconds)
       }
-      Ok(Json.toJson(list))
+      Ok(Json toJson list)
     }
   }
+
 
   /*
    * GET
@@ -99,7 +102,7 @@ class AssessController @Inject()(cc: ControllerComponents,
    * 성공 시
    * 200 성공
    */
-  def getAssessPost(postId: Int) = actionWithAuth.async {
+  def getAssessPost(postId: Int) = auth.async {
     postDB.findPostById(postId).map { i =>
       var result = Json.obj("" -> "")
       i.foreach { post =>
@@ -110,7 +113,7 @@ class AssessController @Inject()(cc: ControllerComponents,
         var images = Seq[String]()
         imageDB.findImagesByPostId(postId).map { j =>
           images = j.map { image =>
-            Base64.getEncoder.encodeToString(image.data.getBytes(1, image.data.length.asInstanceOf[Int]))
+            Source.fromFile(image.data).mkString
           }
         }
         var comments = 0
@@ -144,10 +147,11 @@ class AssessController @Inject()(cc: ControllerComponents,
    * 성공 시
    * 200 성공
    */
-  def markStarToPost(postId: Int) = actionWithAuth(parse.json) { request =>
-    val star = (request.body \ "star").as[BigDecimal]
-    postDB.markStar(postId, star)
-    Ok("별점 부여됨")
+  def markStarToPost(postId: Int) = auth(parse.json).async { request =>
+    val star = (request.body \ "star").as[Double]
+    postDB.markStar(postId, star).map { result =>
+      Ok("별점 부여됨")
+    }
   }
 
   /*
@@ -172,7 +176,7 @@ class AssessController @Inject()(cc: ControllerComponents,
    * 200 성공
    *
    */
-  def getCommentList(postId: Int) = actionWithAuth.async {
+  def getCommentList(postId: Int) = auth.async {
     commentDB.findCommentsByPostId(postId).map { i =>
       var comments = new ListBuffer[JsObject]()
       i.foreach { column =>
@@ -183,7 +187,7 @@ class AssessController @Inject()(cc: ControllerComponents,
         var image = ""
         imageDB.findImageByCommentId(commentId).map { i =>
           i.foreach { column =>
-            image = Base64.getEncoder.encodeToString(column.data.getBytes(1, column.data.length.asInstanceOf[Int]))
+            image = Source.fromFile(column.data).mkString
           }
         }
         val json = Json.obj(
@@ -200,6 +204,23 @@ class AssessController @Inject()(cc: ControllerComponents,
   }
 
   /*
+   * POST
+   *
+   * 클라이언트로부터 받는 것:
+   * postId
+   * {
+   *    "text": <text>
+   * }
+   */
+  def uploadComment(postId: Int) = auth(parse.json).async { request =>
+    val uid = request.session.get("id").getOrElse("")
+    val text = (request.body \ "text").as[String]
+    commentDB.addComment(Comment(uid, 0, postId, 0, 0, text)).map { result =>
+      Ok("댓글 작성됨")
+    }
+  }
+
+  /*
    * PUT
    *
    * 클라이언트로부터 받는 것:
@@ -212,7 +233,7 @@ class AssessController @Inject()(cc: ControllerComponents,
    * 성공 시:
    * 200 OK
    */
-  def putLikeOrUnlike(commentId: Int) = actionWithAuth(parse.json).async { request =>
+  def putLikeOrUnlike(commentId: Int) = auth(parse.json).async { request =>
     val isLike = (request.body \ "is_like").as[Boolean]
     commentDB.findCommentById(commentId).map { i =>
       i.foreach { column =>
@@ -234,23 +255,36 @@ class AssessController @Inject()(cc: ControllerComponents,
    * {
    *    "title": "edlfhaekh",
    *    "text": "kferiuhougeir",
-   *    "category": "some category"
+   *    "category": "some category",
+   *    "images": [
+   *      <base64 images...>
+   *    ]
    * }
    *
    * 성공 시
    * 201 작성됨
    */
-  def uploadPost = actionWithAuth(parse.json) { request =>
+  def uploadPost = auth(parse.json) { request =>
     val title = (request.body \ "title").as[String]
     val text = (request.body \ "text").as[String]
-    val uploadDate = new SimpleDateFormat("yyyy-MM-dd").parse(new Date().toString).getTime
+    val uploadDate = new Date().getTime
     val validDate = uploadDate
     val star = 0.0
     val category = (request.body \ "category").as[String]
-    val isAssess = true
+    val images = (request.body \ "images").as[Array[String]]
+    val isAssess = 1
     val userId = request.session.get("id").getOrElse("")
-    val post = Post(0, title, text, uploadDate.asInstanceOf[Int], validDate.asInstanceOf[Int], star, category, isAssess, userId)
-    postDB.post(post)
+    val post = Post(0, title, text, uploadDate.asInstanceOf[Long], validDate.asInstanceOf[Long], star, category, isAssess, userId)
+
+    Await.result(postDB.post(post), 2 seconds)
+    val size = Await.result(postDB.size, 1 seconds)
+    images.foreach { image =>
+      val path = new File(".").getCanonicalPath + "/public/" + image.hashCode.toString
+      val writer = new PrintWriter(new File(path))
+      writer.write(image)
+      Await.result(imageDB.insertImage(Image(Some(size), None, path, 0)), 2 seconds)
+      writer.close()
+    }
     Created("글 작성됨")
   }
 }

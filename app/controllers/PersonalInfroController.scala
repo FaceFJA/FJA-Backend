@@ -8,6 +8,9 @@ import play.api.mvc.{AbstractController, ControllerComponents, Request}
 import services.ActionWithAuth
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.Await
+import scala.concurrent.duration._
+
 
 class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess, auth: ActionWithAuth)(implicit assetsFinder: AssetsFinder)
   extends AbstractController(cc) {
@@ -21,7 +24,7 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
    * 성공 시
    * 200
    */
-  def getPersonalInfo = auth(parse.json) { request: Request[JsValue] =>
+  def getPersonalInfo = auth { request =>
     val id = request.session.get("id").getOrElse("")
     val result = takePersonalInfo(id)
     Ok(Json.toJson(result))
@@ -36,8 +39,7 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
    * 성공 시
    * 200
    */
-
-  def updatePersonalInfo = auth(parse.json) { request: Request[JsValue] =>
+  def updatePersonalInfo = auth(parse.json).async { request: Request[JsValue] =>
     val id = request.session.get("id").getOrElse("")
     val pw = (request.body \ "pw").as[String]
 
@@ -47,8 +49,9 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
     val old = (result \ "old").as[Int]
     val email = (result \ "email").as[String]
     val updateUser = User(id, pw, name, gender, old, email)
-    db.updatePassword(id, updateUser)
-    Ok("")
+    db.updatePassword(id, updateUser).map { result =>
+      Ok("")
+    }
   }
 
   /*
@@ -60,10 +63,11 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
    * 성공 시
    * 200
    */
-  def leaveUser = auth(parse.json) { request: Request[JsValue] =>
+  def leaveUser = auth(parse.json).async { request: Request[JsValue] =>
     val id = request.session.get("id").getOrElse("")
-    db.leaveUser(id)
-    Ok("회원탈퇴 완료")
+    db.leaveUser(id).map { result =>
+      Ok("회원탈퇴 완료")
+    }
   }
 
   /*
@@ -79,9 +83,9 @@ class PersonalInfroController @Inject()(cc: ControllerComponents, db: UserAccess
 
   def takePersonalInfo(id: String) = {
     val result = new ListBuffer[JsValue]()
-    db.checkId(id).map(i =>
+    Await.result(db.checkId(id).map(i =>
       i.foreach(data => result += Json.toJson(data))
-    )
+    ), 2 seconds)
     result
   }
 }
