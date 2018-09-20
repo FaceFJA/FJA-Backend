@@ -1,5 +1,5 @@
 # FJA-BackEnd
-+ 2018 JavaProject Android
++ 2018 JavaProject
 + 서버 개발자: 차태민,노영은
 
 ## 프로젝트 소개
