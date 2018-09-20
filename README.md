@@ -1,4 +1,4 @@
-# FJA-Andriod
+# FJA-BackEnd
 + 2018 JavaProject Android
 + 서버 개발자: 차태민,노영은
 
